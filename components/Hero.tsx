@@ -34,6 +34,8 @@ const Hero = () => {
         loop
         muted
         playsInline
+        preload="auto"
+        webkit-playsinline
         poster="https://ik.imagekit.io/99y1fc9mh/Aauraa/IMG_9305.jpg?updatedAt=1763102760441"
       >
         <source
