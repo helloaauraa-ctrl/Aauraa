@@ -45,6 +45,29 @@ const Form = () => {
     setErrors((prev) => ({ ...prev, [questionNum]: message }));
   }, []);
 
+  const handleSubmit = useCallback(async () => {
+    setIsSubmitting(true);
+
+    try {
+      await fetch(
+        "https://script.google.com/macros/s/AKfycbwH8lOiGyshI6uGD9Xq6AuXpiSIiQMwXhCnGxlX8E1RauDDLYdRgPg6M1xClmdnzTv1eQ/exec",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+          mode: "no-cors",
+        }
+      );
+      setShowThankYou(true);
+    } catch (error) {
+      console.error("Error:", error);
+      showError(6, "There was an error submitting the form. Please try again.");
+      setIsSubmitting(false);
+    }
+  }, [formData, showError]);
+
   const validateAndProceed = useCallback(
     (questionNum: number) => {
       let isValid = true;
@@ -87,13 +110,8 @@ const Form = () => {
             errorMsg = "Please enter your website or social media handle";
           }
           break;
-        case 6:
-          if (formData.eventType === "") {
-            isValid = false;
-            errorMsg = "Please select an event type";
-          }
-          break;
-        case 7:
+        // Question 6 is removed
+        case 6: // This is now question 7 (attendPrelaunch)
           if (formData.attendPrelaunch === "") {
             isValid = false;
             errorMsg = "Please select an option";
@@ -103,47 +121,18 @@ const Form = () => {
 
       if (isValid) {
         setErrors((prev) => ({ ...prev, [questionNum]: "" }));
-        setCurrentQuestion(questionNum + 1);
+        // Skip question 6 and 8, go directly to thank you after question 6 (now 7)
+        if (questionNum === 6) {
+          handleSubmit();
+        } else {
+          setCurrentQuestion(questionNum + 1);
+        }
       } else {
         showError(questionNum, errorMsg);
       }
     },
-    [formData, showError]
+    [formData, showError, handleSubmit]
   );
-
-  const handleSubmit = useCallback(async () => {
-    setIsSubmitting(true);
-
-    const formDataToSend = new FormData();
-    formDataToSend.append("timestamp", new Date().toISOString());
-    formDataToSend.append("fullName", formData.fullName);
-    formDataToSend.append("email", formData.email);
-    formDataToSend.append("mobile", formData.mobile);
-    formDataToSend.append("communityName", formData.communityName);
-    formDataToSend.append("socialHandle", formData.socialHandle);
-    formDataToSend.append("eventType", formData.eventType);
-    formDataToSend.append("attendPrelaunch", formData.attendPrelaunch);
-    formDataToSend.append("questions", formData.questions);
-
-    try {
-      await fetch(
-        "https://script.google.com/macros/s/AKfycbzTtRhQcJ0r8zNznAjlBBL-XDHIM10keU9gRnAdb1iVeYwANoVlvXlNsf3pq8Rg5M27RA/exec",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-          mode: "no-cors",
-        }
-      );
-      setShowThankYou(true);
-    } catch (error) {
-      console.error("Error:", error);
-      showError(8, "There was an error submitting the form. Please try again.");
-      setIsSubmitting(false);
-    }
-  }, [formData, showError]);
 
   const handleEnterPress = useCallback(() => {
     switch (currentQuestion) {
@@ -183,21 +172,14 @@ const Form = () => {
           showError(5, "Please enter your website or social media handle");
         }
         break;
-      case 6:
-        if (formData.eventType !== "") {
+      case 6: // This is now question 7 (attendPrelaunch)
+        if (formData.attendPrelaunch !== "") {
           validateAndProceed(6);
         } else {
-          showError(6, "Please select an event type");
+          showError(6, "Please select an option");
         }
         break;
-      case 7:
-        if (formData.attendPrelaunch !== "") {
-          validateAndProceed(7);
-        } else {
-          showError(7, "Please select an option");
-        }
-        break;
-      case 8:
+      default:
         handleSubmit();
         break;
     }
@@ -215,11 +197,6 @@ const Form = () => {
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [handleEnterPress, showThankYou]);
 
-  const eventTypes = [
-    { value: "online", label: "Online" },
-    { value: "offline", label: "Offline" },
-    { value: "both", label: "Both" },
-  ];
 
   const attendOptions = [
     { value: "yes", label: "Yes, I'll be there" },
@@ -230,7 +207,8 @@ const Form = () => {
     },
   ];
 
-  const progress = showThankYou ? 100 : ((currentQuestion - 1) / 8) * 100;
+  // Updated progress to reflect 6 questions instead of 8
+  const progress = showThankYou ? 100 : ((currentQuestion - 1) / 6) * 100;
 
   return (
     <div className="h-screen w-full bg-black flex items-center justify-center p-5 md:p-10 font-sans text-white relative">
@@ -303,6 +281,7 @@ const Form = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
                 }
+                autoFocus={true}
                 placeholder="name@example.com"
                 className="w-full py-3 bg-transparent border-none border-b-2 border-white/30 text-white text-2xl focus:outline-none transition-all"
               />
@@ -358,6 +337,7 @@ const Form = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, mobile: e.target.value })
                 }
+                autoFocus={true}
                 placeholder="+1 (555) 000-0000"
                 className="w-full py-3 bg-transparent border-none border-b-2 border-white/30 text-white text-2xl focus:outline-none transition-all"
               />
@@ -413,6 +393,7 @@ const Form = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, communityName: e.target.value })
                 }
+                autoFocus={true}
                 placeholder="Type your answer here..."
                 className="w-full py-3 bg-transparent border-none border-b-2 border-white/30 text-white text-2xl focus:outline-none transition-all"
               />
@@ -468,6 +449,7 @@ const Form = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, socialHandle: e.target.value })
                 }
+                autoFocus={true}
                 placeholder="Type your answer here..."
                 className="w-full py-3 bg-transparent border-none border-b-2 border-white/30 text-white text-2xl focus:outline-none transition-all"
               />
@@ -490,85 +472,12 @@ const Form = () => {
           </div>
         )}
 
-        {/* Question 6: Type of Events */}
+        {/* Question 6: Attend Prelaunch (was Question 7) */}
         {currentQuestion === 6 && !showThankYou && (
           <div className="opacity-100 transform translate-y-0 transition-all duration-400">
             <div className="mb-12">
               <button
                 onClick={() => setCurrentQuestion(5)}
-                className="bg-white text-black px-2.5 py-1.5 rounded-full text-base font-medium cursor-pointer hover:bg-white/90 transition-all flex items-center gap-1"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 12H5M12 19l-7-7 7-7"
-                  />
-                </svg>
-              </button>
-            </div>
-            <h2 className="text-[28px] font-medium mb-5 tracking-tight">
-              Type of events you usually host *
-            </h2>
-            <div className="mb-8">
-              <div className="flex flex-col gap-2">
-                {eventTypes.map((type) => (
-                  <div
-                    key={type.value}
-                    onClick={() => {
-                      setFormData({ ...formData, eventType: type.value });
-                      setErrors((prev) => ({ ...prev, 6: "" }));
-                    }}
-                    className={`p-4 rounded-lg cursor-pointer transition-all ${
-                      formData.eventType === type.value
-                        ? "bg-white/20"
-                        : "bg-white/10 hover:bg-white/15"
-                    }`}
-                  >
-                    <div className="flex items-center">
-                      <div
-                        className={`w-5 h-5 border-2 rounded-full mr-3 transition-all relative ${
-                          formData.eventType === type.value
-                            ? "border-white"
-                            : "border-white/50"
-                        }`}
-                      >
-                        {formData.eventType === type.value && (
-                          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white rounded-full" />
-                        )}
-                      </div>
-                      <div className="text-lg">{type.label}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {errors[6] && (
-                <div className="text-red-400 text-sm mt-1.5">{errors[6]}</div>
-              )}
-            </div>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => validateAndProceed(6)}
-                className="bg-white text-black px-5 py-2.5 rounded-full text-base font-medium cursor-pointer hover:translate-y-[-2px] hover:shadow-lg transition-all"
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Question 7: Attend Prelaunch */}
-        {currentQuestion === 7 && !showThankYou && (
-          <div className="opacity-100 transform translate-y-0 transition-all duration-400">
-            <div className="mb-12">
-              <button
-                onClick={() => setCurrentQuestion(6)}
                 className="bg-white text-black px-2.5 py-1.5 rounded-full text-base font-medium cursor-pointer hover:bg-white/90 transition-all flex items-center gap-1"
               >
                 <svg
@@ -599,7 +508,7 @@ const Form = () => {
                         ...formData,
                         attendPrelaunch: option.value,
                       });
-                      setErrors((prev) => ({ ...prev, 7: "" }));
+                      setErrors((prev) => ({ ...prev, 6: "" }));
                     }}
                     className={`p-4 rounded-lg cursor-pointer transition-all ${
                       formData.attendPrelaunch === option.value
@@ -624,66 +533,16 @@ const Form = () => {
                   </div>
                 ))}
               </div>
-              {errors[7] && (
-                <div className="text-red-400 text-sm mt-1.5">{errors[7]}</div>
+              {errors[6] && (
+                <div className="text-red-400 text-sm mt-1.5">{errors[6]}</div>
               )}
             </div>
             <div className="flex items-center gap-4">
               <button
-                onClick={() => validateAndProceed(7)}
+                onClick={() => validateAndProceed(6)}
                 className="bg-white text-black px-5 py-2.5 rounded-full text-base font-medium cursor-pointer hover:translate-y-[-2px] hover:shadow-lg transition-all"
               >
                 OK
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Question 8: Questions/Suggestions */}
-        {currentQuestion === 8 && !showThankYou && (
-          <div className="opacity-100 transform translate-y-0 transition-all duration-400">
-            <div className="mb-12">
-              <button
-                onClick={() => setCurrentQuestion(7)}
-                className="bg-white text-black px-2.5 py-1.5 rounded-full text-base font-medium cursor-pointer hover:bg-white/90 transition-all flex items-center gap-1"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 12H5M12 19l-7-7 7-7"
-                  />
-                </svg>
-              </button>
-            </div>
-            <h2 className="text-[28px] font-medium mb-5 tracking-tight">
-              Any questions or suggestions for the AAURAA team?
-            </h2>
-            <div className="relative mb-10">
-              <textarea
-                value={formData.questions}
-                onChange={(e) =>
-                  setFormData({ ...formData, questions: e.target.value })
-                }
-                placeholder="Type your answer here... (optional)"
-                className="w-full py-3 bg-transparent border-none border-b-2 border-white/30 text-white text-2xl focus:outline-none transition-all resize-none"
-                rows={3}
-              />
-              <div className="input-line absolute bottom-0 left-0 h-0.5 bg-white transition-all duration-500" />
-            </div>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="bg-white text-black px-5 py-2.5 rounded-full text-base font-medium cursor-pointer hover:translate-y-[-2px] hover:shadow-lg transition-all disabled:opacity-50"
-              >
-                {isSubmitting ? "Submitting..." : "Submit"}
               </button>
             </div>
           </div>
