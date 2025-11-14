@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+    font-family: var(--font-quicksand), sans-serif;
+  
+}
+
+
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+html {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  overflow-x: hidden;
+
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+
+.dot-animation {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: pulseCircle 1.5s infinite ease-in-out;
+  flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+  .dot-animation {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+@media (min-width: 768px) {
+  .dot-animation {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dot-animation {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* Alternate timing for multiple dots */
+.animation-delay-0 {
+  animation-delay: 0s;
+}
+.animation-delay-750 {
+  animation-delay: 0.75s;
+}
+
+/* Animation Keyframes */
+@keyframes pulseCircle {
+  0% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+}
