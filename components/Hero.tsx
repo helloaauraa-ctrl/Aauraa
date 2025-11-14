@@ -29,13 +29,14 @@ const Hero = () => {
     <div id="hero" className="relative w-full h-screen">
       {/* Background Video */}
       <video
+    
         className="absolute top-0 left-0 w-full h-full object-cover"
         autoPlay
         loop
         muted
         playsInline
+        webkit-playsinline="true"
         preload="auto"
-        webkit-playsinline
         poster="https://ik.imagekit.io/99y1fc9mh/Aauraa/IMG_9305.jpg?updatedAt=1763102760441"
       >
         <source
@@ -76,17 +77,22 @@ const Hero = () => {
 
       {/* Hero Content */}
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-white text-center">
-        <div
+        <div>
+ <div
           ref={logoRef}
-          className="relative z-10 flex items-center justify-center h-full gap-2"
+          className="relative z-10 flex items-center justify-center h-full gap-2 -mt-10"
         >
-          <Image src={A} alt="A" className="md:w-20 w-10 h-auto letter" />
-          <Image src={A} alt="A" className="md:w-20 w-10 h-auto letter" />
-          <Image src={U} alt="U" className="md:w-20 w-10 h-auto letter" />
-          <Image src={R} alt="R" className="md:w-20 w-10 h-auto letter" />
-          <Image src={A} alt="A" className="md:w-20 w-10 h-auto letter" />
-          <Image src={A} alt="A" className="md:w-20 w-10 h-auto letter" />
+          <Image src={A} alt="A" className="md:w-20 w-15 h-auto letter" />
+          <Image src={A} alt="A" className="md:w-20 w-15 h-auto letter" />
+          <Image src={U} alt="U" className="md:w-20 w-15 h-auto letter" />
+          <Image src={R} alt="R" className="md:w-20 w-15 h-auto letter" />
+          <Image src={A} alt="A" className="md:w-20 w-15 h-auto letter" />
+          <Image src={A} alt="A" className="md:w-20 w-15 h-auto letter" />
         </div>
+
+        <p className="text-white font-semibold md:text-2xl text-xl tracking-tight pt-5">Find UR Vibe, Find UR Community</p>
+        </div>
+       
         <a
           href="#story"
           onClick={(e) => {
