@@ -4,7 +4,7 @@ import React, { useEffect, useRef } from "react";
 import gsap from "gsap";
 import Image from "next/image";
 import Link from "next/link";
-import Whatsapp from '@/assets/whatsapp.png'
+import Whatsapp from "@/assets/whatsapp.png";
 
 const Hero = () => {
   const logoRef = useRef<HTMLDivElement>(null);
@@ -29,7 +29,6 @@ const Hero = () => {
     <div id="hero" className="relative w-full h-screen">
       {/* Background Video */}
       <video
-    
         className="absolute top-0 left-0 w-full h-full object-cover"
         autoPlay
         loop
@@ -58,7 +57,7 @@ const Hero = () => {
         REGISTER NOW
       </Link>
 
-    <div className="fixed bottom-4 right-4 z-50 flex flex-row items-center justify-center ">
+      <div className="fixed bottom-4 right-4 z-50 flex flex-row items-center justify-center ">
         <Link
           href="https://wa.me/+971509690564"
           target="_blank"
@@ -66,40 +65,37 @@ const Hero = () => {
           className="flex flex-row-reverse items-center justify-center gap-2 bg-white/50 px-4 py-2 rounded-full"
         >
           <p className="text-black">971509690564</p>
-          <Image
-            src={Whatsapp}
-            alt="WhatsApp Chat"
-            className="w-8 h-8"
-          />
-          
+          <Image src={Whatsapp} alt="WhatsApp Chat" className="w-8 h-8" />
         </Link>
       </div>
 
       {/* Hero Content */}
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-white text-center">
         <div>
- <div
-          ref={logoRef}
-          className="relative z-10 flex items-center justify-center h-full gap-2 -mt-10"
-        >
-          <Image src={A} alt="A" className="md:w-20 w-15 h-auto letter" />
-          <Image src={A} alt="A" className="md:w-20 w-15 h-auto letter" />
-          <Image src={U} alt="U" className="md:w-20 w-15 h-auto letter" />
-          <Image src={R} alt="R" className="md:w-20 w-15 h-auto letter" />
-          <Image src={A} alt="A" className="md:w-20 w-15 h-auto letter" />
-          <Image src={A} alt="A" className="md:w-20 w-15 h-auto letter" />
+          <div
+            ref={logoRef}
+            className="relative z-10 flex items-center justify-center h-full gap-2 -mt-10"
+          >
+            <Image src={A} alt="A" className="md:w-20 w-15 h-auto letter" />
+            <Image src={A} alt="A" className="md:w-20 w-15 h-auto letter" />
+            <Image src={U} alt="U" className="md:w-20 w-15 h-auto letter" />
+            <Image src={R} alt="R" className="md:w-20 w-15 h-auto letter" />
+            <Image src={A} alt="A" className="md:w-20 w-15 h-auto letter" />
+            <Image src={A} alt="A" className="md:w-20 w-15 h-auto letter" />
+          </div>
+
+          <p className="text-white font-semibold md:text-2xl text-xl tracking-tight pt-5">
+            Find UR Vibe, Find UR Community
+          </p>
         </div>
 
-        <p className="text-white font-semibold md:text-2xl text-xl tracking-tight pt-5">Find UR Vibe, Find UR Community</p>
-        </div>
-       
         <a
           href="#story"
           onClick={(e) => {
             e.preventDefault();
-            const element = document.getElementById('story');
+            const element = document.getElementById("story");
             if (element) {
-              element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              element.scrollIntoView({ behavior: "smooth", block: "start" });
             }
           }}
           className="group absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 

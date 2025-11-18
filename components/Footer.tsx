@@ -15,7 +15,7 @@ const Footer = () => {
         <div className="w-8 sm:w-10 md:w-16 h-[3px] bg-black rounded-full md:block hidden"></div>
         <div className="flex flex-row items-center gap-2 ">
           <Link
-            href="https://instagram.com/aauraa"
+            href="https://www.instagram.com/getaauraa?igsh=ZXg1NWVmdnk5ZXFn"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:scale-110 transition-transform"
@@ -45,7 +45,7 @@ const Footer = () => {
 
       <div className="flex flex-row items-center gap-2 mb-5 ">
         <Link
-          href="https://instagram.com/aauraa"
+          href="https://www.instagram.com/getaauraa?igsh=ZXg1NWVmdnk5ZXFn"
           target="_blank"
           rel="noopener noreferrer"
           className="hover:scale-110 transition-transform"
