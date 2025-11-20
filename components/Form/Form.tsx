@@ -92,10 +92,10 @@ const Form = () => {
           if (!mobileValue) {
             isValid = false;
             errorMsg = "Please enter your mobile number";
-          } else if (!/^\d{10}$/.test(mobileValue)) {
+          } else if (!/^\d{12}$/.test(mobileValue)) {
             isValid = false;
             errorMsg =
-              "Mobile number must be exactly 10 digits and contain only numbers";
+              "Mobile number must contain only numbers";
           }
           break;
         case 4:
