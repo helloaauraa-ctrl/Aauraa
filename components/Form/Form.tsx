@@ -11,7 +11,6 @@ interface FormData {
   communityName: string;
   socialHandle: string;
   eventType: string;
-  attendPrelaunch: string;
   questions: string;
 }
 
@@ -26,7 +25,6 @@ const Form = () => {
     communityName: "",
     socialHandle: "",
     eventType: "",
-    attendPrelaunch: "",
     questions: "",
   });
   const [errors, setErrors] = useState<Record<number, string>>({});
@@ -103,12 +101,6 @@ const Form = () => {
           if (formData.eventType === "") {
             isValid = false;
             errorMsg = "Please select an event type";
-          }
-          break;
-        case 8:
-          if (formData.attendPrelaunch === "") {
-            isValid = false;
-            errorMsg = "Please select an option";
           }
           break;
       }
@@ -494,62 +486,13 @@ const Form = () => {
           </div>
         )}
 
+        
+
+        {/* Question 8 */}
         {currentQuestion === 8 && !showThankYou && (
           <div className="opacity-100 transform translate-y-0 transition-all duration-400">
             <div className="mb-12">
               <button onClick={() => setCurrentQuestion(7)} className="bg-white text-black px-2.5 py-1.5 rounded-full flex items-center gap-1 hover:bg-white/90 transition-all">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 12H5M12 19l-7-7 7-7" />
-                </svg>
-              </button>
-            </div>
-            <h2 className="text-[28px] font-medium mb-5 tracking-tight">
-              Will you be attending the Prelaunch in person? *
-            </h2>
-            <div className="mb-8">
-              <div className="flex flex-col gap-2">
-                {attendOptions.map((option) => (
-                  <div
-                    key={option.value}
-                    onClick={() => {
-                      setFormData({ ...formData, attendPrelaunch: option.value });
-                      setErrors((prev) => ({ ...prev, 8: "" }));
-                    }}
-                    className={`p-4 rounded-lg cursor-pointer transition-all ${
-                      formData.attendPrelaunch === option.value ? "bg-white/20" : "bg-white/10 hover:bg-white/15"
-                    }`}
-                  >
-                    <div className="flex items-center">
-                      <div
-                        className={`w-5 h-5 border-2 rounded-full mr-3 relative ${
-                          formData.attendPrelaunch === option.value ? "border-white" : "border-white/50"
-                        }`}
-                      >
-                        {formData.attendPrelaunch === option.value && (
-                          <div className="absolute inset-0 m-auto w-2.5 h-2.5 bg-white rounded-full" />
-                        )}
-                      </div>
-                      <div className="text-lg">{option.label}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {errors[8] && <div className="text-red-400 text-sm mt-1.5">{errors[8]}</div>}
-            </div>
-            <button
-              onClick={() => validateAndProceed(8)}
-              className="bg-white text-black px-5 py-2.5 rounded-full text-base font-medium hover:translate-y-[-2px] hover:shadow-lg transition-all"
-            >
-              OK
-            </button>
-          </div>
-        )}
-
-        {/* Question 9 */}
-        {currentQuestion === 9 && !showThankYou && (
-          <div className="opacity-100 transform translate-y-0 transition-all duration-400">
-            <div className="mb-12">
-              <button onClick={() => setCurrentQuestion(8)} className="bg-white text-black px-2.5 py-1.5 rounded-full flex items-center gap-1 hover:bg-white/90 transition-all">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 12H5M12 19l-7-7 7-7" />
                 </svg>
@@ -573,7 +516,7 @@ const Form = () => {
               disabled={isSubmitting}
               className="bg-white text-black px-5 py-2.5 rounded-full text-base font-medium hover:translate-y-[-2px] hover:shadow-lg transition-all disabled:opacity-50"
             >
-              {isSubmitting ? "Submitting..." : "Submit"}
+              {isSubmitting ? "Joining..." : "Join the Waitlist"}
             </button>
           </div>
         )}
