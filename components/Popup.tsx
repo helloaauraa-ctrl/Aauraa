@@ -71,7 +71,7 @@ const Popup = () => {
               rel="noopener noreferrer"
               className="bg-transparent border border-black text-[#E90000] transition-colors duration-300 font-semibold px-6 py-3 rounded-full text-center"
             >
-              REGISTER NOW
+             JOIN THE WAITLIST
             </Link>
           </div>
         </div>
