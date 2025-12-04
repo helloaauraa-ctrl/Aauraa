@@ -16,6 +16,7 @@ const Popup = () => {
     return () => clearTimeout(timer);
   }, []);
 
+
   const handleClose = () => {
     setIsOpen(false);
   };
