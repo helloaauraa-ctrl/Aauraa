@@ -83,8 +83,16 @@ const Form = () => {
           if (!formData.howyouJoin) {
             isValid = false;
             errorMsg = "Please select how you'll join us";
+          } else {
+            // SKIP Q5 if user selects "user"
+            if (formData.howyouJoin === "user") {
+              setErrors((prev) => ({ ...prev, 4: "" }));
+              setCurrentQuestion(6);
+              return;
+            }
           }
           break;
+
         case 5:
           if (!formData.communityName.trim()) {
             isValid = false;
@@ -164,7 +172,10 @@ const Form = () => {
   const howYouJoinOption = [
     { value: "community-founder", label: "I am a Community Founder" },
     { value: "i-create-events", label: "I Create Events" },
-    { value: "user", label: "I am a User looking to discover communities & experiences" },
+    {
+      value: "user",
+      label: "I am a User looking to discover communities & experiences",
+    },
   ];
 
   const eventTypes = [
@@ -177,7 +188,8 @@ const Form = () => {
     { value: "yes", label: "Yes, I'll be there" },
     {
       value: "no",
-      label: "Sorry, can't make it but would like to be updated once the app is launched",
+      label:
+        "Sorry, can't make it but would like to be updated once the app is launched",
     },
   ];
 
@@ -189,12 +201,16 @@ const Form = () => {
         {/* Question 1 */}
         {currentQuestion === 1 && !showThankYou && (
           <div className="opacity-100 transform translate-y-0 transition-all duration-400">
-            <h2 className="text-[28px] font-medium mb-5 tracking-tight">Full Name *</h2>
+            <h2 className="text-[28px] font-medium mb-5 tracking-tight">
+              Full Name *
+            </h2>
             <div className="relative mb-10">
               <input
                 type="text"
                 value={formData.fullName}
-                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, fullName: e.target.value })
+                }
                 placeholder="Type your answer here..."
                 className="w-full py-3 bg-transparent border-none border-b-2 border-white/30 text-white text-2xl focus:outline-none"
               />
@@ -225,17 +241,31 @@ const Form = () => {
                 onClick={() => setCurrentQuestion(1)}
                 className="bg-white text-black px-2.5 py-1.5 rounded-full flex items-center gap-1 hover:bg-white/90 transition-all"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 12H5M12 19l-7-7 7-7" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 12H5M12 19l-7-7 7-7"
+                  />
                 </svg>
               </button>
             </div>
-            <h2 className="text-[28px] font-medium mb-5 tracking-tight">Email Address *</h2>
+            <h2 className="text-[28px] font-medium mb-5 tracking-tight">
+              Email Address *
+            </h2>
             <div className="relative mb-10">
               <input
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 placeholder="name@example.com"
                 className="w-full py-3 bg-transparent border-none border-b-2 border-white/30 text-white text-2xl focus:outline-none"
               />
@@ -266,17 +296,31 @@ const Form = () => {
                 onClick={() => setCurrentQuestion(2)}
                 className="bg-white text-black px-2.5 py-1.5 rounded-full flex items-center gap-1 hover:bg-white/90 transition-all"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 12H5M12 19l-7-7 7-7" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 12H5M12 19l-7-7 7-7"
+                  />
                 </svg>
               </button>
             </div>
-            <h2 className="text-[28px] font-medium mb-5 tracking-tight">Mobile Number *</h2>
+            <h2 className="text-[28px] font-medium mb-5 tracking-tight">
+              Mobile Number *
+            </h2>
             <div className="relative mb-10">
               <input
                 type="tel"
                 value={formData.mobile}
-                onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, mobile: e.target.value })
+                }
                 placeholder="+1 (555) 123-4567"
                 className="w-full py-3 bg-transparent border-none border-b-2 border-white/30 text-white text-2xl focus:outline-none"
               />
@@ -307,8 +351,18 @@ const Form = () => {
                 onClick={() => setCurrentQuestion(3)}
                 className="bg-white text-black px-2.5 py-1.5 rounded-full flex items-center gap-1 hover:bg-white/90 transition-all"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 12H5M12 19l-7-7 7-7" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 12H5M12 19l-7-7 7-7"
+                  />
                 </svg>
               </button>
             </div>
@@ -333,7 +387,9 @@ const Form = () => {
                     <div className="flex items-center">
                       <div
                         className={`w-5 h-5 border-2 rounded-full mr-3 relative ${
-                          formData.howyouJoin === option.value ? "border-white" : "border-white/50"
+                          formData.howyouJoin === option.value
+                            ? "border-white"
+                            : "border-white/50"
                         }`}
                       >
                         {formData.howyouJoin === option.value && (
@@ -345,7 +401,9 @@ const Form = () => {
                   </div>
                 ))}
               </div>
-              {errors[4] && <div className="text-red-400 text-sm mt-1.5">{errors[4]}</div>}
+              {errors[4] && (
+                <div className="text-red-400 text-sm mt-1.5">{errors[4]}</div>
+              )}
             </div>
             <button
               onClick={() => validateAndProceed(4)}
@@ -360,9 +418,22 @@ const Form = () => {
         {currentQuestion === 5 && !showThankYou && (
           <div className="opacity-100 transform translate-y-0 transition-all duration-400">
             <div className="mb-12">
-              <button onClick={() => setCurrentQuestion(4)} className="bg-white text-black px-2.5 py-1.5 rounded-full flex items-center gap-1 hover:bg-white/90 transition-all">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 12H5M12 19l-7-7 7-7" />
+              <button
+                onClick={() => setCurrentQuestion(4)}
+                className="bg-white text-black px-2.5 py-1.5 rounded-full flex items-center gap-1 hover:bg-white/90 transition-all"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 12H5M12 19l-7-7 7-7"
+                  />
                 </svg>
               </button>
             </div>
@@ -373,7 +444,9 @@ const Form = () => {
               <input
                 type="text"
                 value={formData.communityName}
-                onChange={(e) => setFormData({ ...formData, communityName: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, communityName: e.target.value })
+                }
                 placeholder="Type your answer here..."
                 className="w-full py-3 bg-transparent border-none border-b-2 border-white/30 text-white text-2xl focus:outline-none"
               />
@@ -399,9 +472,22 @@ const Form = () => {
         {currentQuestion === 6 && !showThankYou && (
           <div className="opacity-100 transform translate-y-0 transition-all duration-400">
             <div className="mb-12">
-              <button onClick={() => setCurrentQuestion(5)} className="bg-white text-black px-2.5 py-1.5 rounded-full flex items-center gap-1 hover:bg-white/90 transition-all">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 12H5M12 19l-7-7 7-7" />
+              <button
+                onClick={() => setCurrentQuestion(5)}
+                className="bg-white text-black px-2.5 py-1.5 rounded-full flex items-center gap-1 hover:bg-white/90 transition-all"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 12H5M12 19l-7-7 7-7"
+                  />
                 </svg>
               </button>
             </div>
@@ -412,7 +498,9 @@ const Form = () => {
               <input
                 type="text"
                 value={formData.socialHandle}
-                onChange={(e) => setFormData({ ...formData, socialHandle: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, socialHandle: e.target.value })
+                }
                 placeholder="https://.... or @your_handle"
                 className="w-full py-3 bg-transparent border-none border-b-2 border-white/30 text-white text-2xl focus:outline-none"
               />
@@ -438,9 +526,22 @@ const Form = () => {
         {currentQuestion === 7 && !showThankYou && (
           <div className="opacity-100 transform translate-y-0 transition-all duration-400">
             <div className="mb-12">
-              <button onClick={() => setCurrentQuestion(6)} className="bg-white text-black px-2.5 py-1.5 rounded-full flex items-center gap-1 hover:bg-white/90 transition-all">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 12H5M12 19l-7-7 7-7" />
+              <button
+                onClick={() => setCurrentQuestion(6)}
+                className="bg-white text-black px-2.5 py-1.5 rounded-full flex items-center gap-1 hover:bg-white/90 transition-all"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 12H5M12 19l-7-7 7-7"
+                  />
                 </svg>
               </button>
             </div>
@@ -457,13 +558,17 @@ const Form = () => {
                       setErrors((prev) => ({ ...prev, 7: "" }));
                     }}
                     className={`p-4 rounded-lg cursor-pointer transition-all ${
-                      formData.eventType === type.value ? "bg-white/20" : "bg-white/10 hover:bg-white/15"
+                      formData.eventType === type.value
+                        ? "bg-white/20"
+                        : "bg-white/10 hover:bg-white/15"
                     }`}
                   >
                     <div className="flex items-center">
                       <div
                         className={`w-5 h-5 border-2 rounded-full mr-3 relative ${
-                          formData.eventType === type.value ? "border-white" : "border-white/50"
+                          formData.eventType === type.value
+                            ? "border-white"
+                            : "border-white/50"
                         }`}
                       >
                         {formData.eventType === type.value && (
@@ -475,7 +580,9 @@ const Form = () => {
                   </div>
                 ))}
               </div>
-              {errors[7] && <div className="text-red-400 text-sm mt-1.5">{errors[7]}</div>}
+              {errors[7] && (
+                <div className="text-red-400 text-sm mt-1.5">{errors[7]}</div>
+              )}
             </div>
             <button
               onClick={() => validateAndProceed(7)}
@@ -486,15 +593,26 @@ const Form = () => {
           </div>
         )}
 
-        
-
         {/* Question 8 */}
         {currentQuestion === 8 && !showThankYou && (
           <div className="opacity-100 transform translate-y-0 transition-all duration-400">
             <div className="mb-12">
-              <button onClick={() => setCurrentQuestion(7)} className="bg-white text-black px-2.5 py-1.5 rounded-full flex items-center gap-1 hover:bg-white/90 transition-all">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 12H5M12 19l-7-7 7-7" />
+              <button
+                onClick={() => setCurrentQuestion(7)}
+                className="bg-white text-black px-2.5 py-1.5 rounded-full flex items-center gap-1 hover:bg-white/90 transition-all"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 12H5M12 19l-7-7 7-7"
+                  />
                 </svg>
               </button>
             </div>
@@ -504,7 +622,9 @@ const Form = () => {
             <div className="relative mb-10">
               <textarea
                 value={formData.questions}
-                onChange={(e) => setFormData({ ...formData, questions: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, questions: e.target.value })
+                }
                 placeholder="Type your answer here... (optional)"
                 className="w-full py-3 bg-transparent border-none border-b-2 border-white/30 text-white text-2xl focus:outline-none resize-none"
                 rows={3}
@@ -525,7 +645,9 @@ const Form = () => {
         {showThankYou && (
           <div className="text-center opacity-100 transform translate-y-0 transition-all duration-400">
             <div className="text-6xl mb-8">Celebration</div>
-            <h2 className="text-[42px] font-semibold mb-5 tracking-tight">Thank you!</h2>
+            <h2 className="text-[42px] font-semibold mb-5 tracking-tight">
+              Thank you!
+            </h2>
             <p className="text-[22px] text-white/80 mb-10">
               We'll be in touch with you shortly.
             </p>
@@ -548,14 +670,29 @@ const Form = () => {
 
       <style jsx>{`
         @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          20%, 60% { transform: translateX(-5px); }
-          40%, 80% { transform: translateX(5px); }
+          0%,
+          100% {
+            transform: translateX(0);
+          }
+          20%,
+          60% {
+            transform: translateX(-5px);
+          }
+          40%,
+          80% {
+            transform: translateX(5px);
+          }
         }
-        .animate-shake { animation: shake 0.5s; }
-        .input-line { width: 0; }
+        .animate-shake {
+          animation: shake 0.5s;
+        }
+        .input-line {
+          width: 0;
+        }
         input:focus ~ .input-line,
-        textarea:focus ~ .input-line { width: 100%; }
+        textarea:focus ~ .input-line {
+          width: 100%;
+        }
       `}</style>
     </div>
   );

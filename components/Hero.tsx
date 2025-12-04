@@ -54,7 +54,7 @@ const Hero = () => {
         rel="noopener noreferrer"
         className="absolute z-50 top-10 md:right-10 right-5 bg-[#D4EDF4CC] text-[#E90000] font-semibold rounded-full md:px-8 px-4 md:text-[14px] text-[12px] py-2.5 flex items-center justify-center cursor-pointer hover:bg-[#E90000] hover:text-white transition-colors duration-300"
       >
-        REGISTER NOW
+        JOIN THE WAITLIST
       </Link>
 
       <div className="fixed bottom-4 right-4 z-50 flex flex-row items-center justify-center ">
