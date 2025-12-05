@@ -11,7 +11,7 @@ interface BGLinesLayoutProps {
 const BGLinesLayout: React.FC<BGLinesLayoutProps> = ({ children}) => {
   return (
 
-      <div className="relative min-h-screen overflow-hidden w-full bg-white">
+      <div className="relative min-h-screen overflow-hidden w-full bg-[#D4EDF4]">
       <div className="absolute inset-0  flex flex-col h-full">
         {Array.from({ length: 20 }).map((_, index) => (
           <div key={index} className="relative flex-1 w-full">

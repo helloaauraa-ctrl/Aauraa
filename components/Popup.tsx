@@ -30,7 +30,7 @@ const Popup = () => {
 
       {/* Popup Modal */}
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[101] w-[90%] max-w-xl">
-        <div className="relative flex flex-col bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-6 sm:p-8">
+        <div className="relative flex flex-col bg-[#D4EDF4CC] backdrop-blur-sm rounded-2xl shadow-2xl p-6 sm:p-8">
           {/* Close Button */}
           <button
             onClick={handleClose}

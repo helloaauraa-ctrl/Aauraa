@@ -11,7 +11,9 @@ const nextConfig: NextConfig = {
         pathname: '/99y1fc9mh/Aauraa/**', // allow all images in this folder
       },
     ],
+    unoptimized: true
   },
+  output: 'export',
 };
 
 export default nextConfig;

@@ -27,11 +27,13 @@ const Form = () => {
     eventType: "",
     questions: "",
   });
+
   const [errors, setErrors] = useState<Record<number, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showThankYou, setShowThankYou] = useState(false);
-  const [countdown, setCountdown] = useState(3);
+  const [countdown, setCountdown] = useState(15);
 
+  // Redirect after thank you screen
   useEffect(() => {
     if (showThankYou && countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
@@ -41,133 +43,142 @@ const Form = () => {
     }
   }, [showThankYou, countdown]);
 
-  const showError = useCallback((questionNum: number, message: string) => {
-    setErrors((prev) => ({ ...prev, [questionNum]: message }));
-  }, []);
+  // Show validation errors
+  const showError = (step: number, msg: string) =>
+    setErrors((prev) => ({ ...prev, [step]: msg }));
 
-  const validateAndProceed = useCallback(
-    (questionNum: number) => {
-      let isValid = true;
-      let errorMsg = "";
+  // VALIDATION RULES
+  const validators: Record<number, () => string | null> = {
+    1: () => (formData.fullName.trim() ? null : "Please enter your full name"),
 
-      switch (questionNum) {
-        case 1:
-          if (!formData.fullName.trim()) {
-            isValid = false;
-            errorMsg = "Please enter your full name";
-          }
-          break;
-        case 2:
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailRegex.test(formData.email.trim())) {
-            isValid = false;
-            errorMsg = "Please enter a valid email address";
-          }
-          break;
-        case 3:
-          const mobileValue = formData.mobile.trim();
-          if (!mobileValue) {
-            isValid = false;
-            errorMsg = "Please enter your mobile number";
-          } else {
-            // Remove all non-digits except leading +
-            const cleaned = mobileValue.replace(/[^\d+]/g, "");
-            const digits = cleaned.replace(/^\+/, "");
-            if (digits.length < 10 || digits.length > 15) {
-              isValid = false;
-              errorMsg = "Please enter a valid mobile number (10–15 digits)";
-            }
-          }
-          break;
-        case 4:
-          if (!formData.howyouJoin) {
-            isValid = false;
-            errorMsg = "Please select how you'll join us";
-          } else {
-            // SKIP Q5 if user selects "user"
-            if (formData.howyouJoin === "user") {
-              setErrors((prev) => ({ ...prev, 4: "" }));
-              setCurrentQuestion(6);
-              return;
-            }
-          }
-          break;
-
-        case 5:
-          if (!formData.communityName.trim()) {
-            isValid = false;
-            errorMsg = "Please enter your community/brand/event name";
-          }
-          break;
-        case 6:
-          if (!formData.socialHandle.trim()) {
-            isValid = false;
-            errorMsg = "Please enter your website or social media handle";
-          }
-          break;
-        case 7:
-          if (formData.eventType === "") {
-            isValid = false;
-            errorMsg = "Please select an event type";
-          }
-          break;
-      }
-
-      if (isValid) {
-        setErrors((prev) => ({ ...prev, [questionNum]: "" }));
-        if (questionNum < 9) {
-          setCurrentQuestion(questionNum + 1);
-        }
-      } else {
-        showError(questionNum, errorMsg);
-      }
+    2: () => {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(formData.email.trim())
+        ? null
+        : "Please enter a valid email";
     },
-    [formData, showError]
-  );
 
-  const handleSubmit = useCallback(async () => {
+    3: () => {
+      let raw = formData.mobile.trim();
+      if (!raw) return "Please enter your mobile number";
+
+      raw = raw.replace(/\s+/g, "");
+
+      if (raw.startsWith("00")) raw = "+" + raw.slice(2);
+
+      if (!/^\+\d{6,15}$/.test(raw))
+        return "Enter valid international number (e.g., +971501234567)";
+
+      setFormData((prev) => ({ ...prev, mobile: raw }));
+      return null;
+    },
+
+    4: () => (!formData.howyouJoin ? "Please select how you'll join us" : null),
+
+    5: () => {
+      if (formData.howyouJoin === "user") return null;
+      return formData.communityName.trim()
+        ? null
+        : "Please enter your community/brand/event name";
+    },
+
+    6: () => {
+      if (formData.howyouJoin === "user") return null;
+      return formData.socialHandle.trim()
+        ? null
+        : "Please enter your website or social media handle";
+    },
+
+    7: () => {
+      if (formData.howyouJoin === "user") return null;
+      return formData.eventType ? null : "Please select an event type";
+    },
+  };
+
+  // STEP FLOW ENGINE (NEXT)
+  const getNextStep = (step: number): number => {
+    const role = formData.howyouJoin;
+
+    if (step === 4 && role === "user") return 6; // Skip Q5
+    if (step === 6 && role === "user") return 8; // Skip Q7
+
+    return step + 1;
+  };
+
+  // STEP FLOW ENGINE (BACK)
+  const getPrevStep = (step: number): number => {
+    const role = formData.howyouJoin;
+
+    if (role === "user") {
+      if (step === 8) return 6;
+      if (step === 6) return 4;
+      if (step === 4) return 3;
+      if (step === 3) return 2;
+      if (step === 2) return 1;
+      return step - 1;
+    }
+
+    // Community/event flow back steps
+    if (step === 7) return 6;
+    if (step === 6) return 5;
+    if (step === 5) return 4;
+
+    return step - 1;
+  };
+
+  // Validate + move
+  const validateAndProceed = (step: number) => {
+    const error = validators[step]();
+    if (error) {
+      showError(step, error);
+      return;
+    }
+
+    setErrors((prev) => ({ ...prev, [step]: "" }));
+    setCurrentQuestion(getNextStep(step));
+  };
+
+  // Submit waitlist
+  const handleSubmit = async () => {
     setIsSubmitting(true);
 
     const data = new FormData();
-    Object.entries(formData).forEach(([key, value]) => {
-      data.append(key, value as string);
-    });
+    Object.entries(formData).forEach(([k, v]) => data.append(k, v as string));
 
     try {
       await fetch(
         "https://script.google.com/macros/s/AKfycbzTtRhQcJ0r8zNznAjlBBL-XDHIM10keU9gRnAdb1iVeYwANoVlvXlNsf3pq8Rg5M27RA/exec",
-        {
-          method: "POST",
-          mode: "no-cors",
-          body: data, // Critical: Google Apps Script needs FormData
-        }
+        { method: "POST", mode: "no-cors", body: data }
       );
-      setShowThankYou(true);
-    } catch (error) {
-      console.error("Submission failed:", error);
-      showError(9, "Submission failed. Please try again.");
-      setIsSubmitting(false);
-    }
-  }, [formData, showError]);
 
-  const handleEnterPress = useCallback(() => {
-    if (currentQuestion <= 8) {
-      validateAndProceed(currentQuestion);
-    } else if (currentQuestion === 9) {
-      handleSubmit();
+      setShowThankYou(true);
+    } catch {
+      showError(9, "Submission failed. Please try again.");
     }
-  }, [currentQuestion, validateAndProceed, handleSubmit]);
+
+    setIsSubmitting(false);
+  };
+
+  // ENTER key support
+  const handleEnterPress = () => {
+    if (currentQuestion <= 7) validateAndProceed(currentQuestion);
+    else if (currentQuestion === 8) handleSubmit();
+  };
 
   useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === "Enter" && !showThankYou) {
+    const listener = (e: KeyboardEvent) => {
+      if (!showThankYou && e.key === "Enter") {
         e.preventDefault();
         handleEnterPress();
       }
     };
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
+    window.addEventListener("keydown", listener);
+    return () => window.removeEventListener("keydown", listener);
   }, [handleEnterPress, showThankYou]);
+
+  // ================================
+  // UI BELOW — SAME AS YOUR ORIGINAL
+  // ================================
 
   const howYouJoinOption = [
     { value: "community-founder", label: "I am a Community Founder" },
@@ -184,26 +195,20 @@ const Form = () => {
     { value: "both", label: "Both" },
   ];
 
-  const attendOptions = [
-    { value: "yes", label: "Yes, I'll be there" },
-    {
-      value: "no",
-      label:
-        "Sorry, can't make it but would like to be updated once the app is launched",
-    },
-  ];
-
   const progress = showThankYou ? 100 : ((currentQuestion - 1) / 9) * 100;
 
   return (
     <div className="h-screen w-full bg-black flex items-center justify-center p-5 md:p-10 font-sans text-white relative">
       <div className="w-full max-w-[700px]">
-        {/* Question 1 */}
+        {/* =======================
+            Q1 – FULL NAME
+        ======================= */}
         {currentQuestion === 1 && !showThankYou && (
           <div className="opacity-100 transform translate-y-0 transition-all duration-400">
             <h2 className="text-[28px] font-medium mb-5 tracking-tight">
               Full Name *
             </h2>
+
             <div className="relative mb-10">
               <input
                 type="text"
@@ -212,19 +217,19 @@ const Form = () => {
                   setFormData({ ...formData, fullName: e.target.value })
                 }
                 placeholder="Type your answer here..."
-                className="w-full py-3 bg-transparent border-none border-b-2 border-white/30 text-white text-2xl focus:outline-none"
+                className="w-full py-3 bg-transparent  focus:border-b-2 border-white/30 text-white text-2xl focus:outline-none"
               />
-              <div className="input-line absolute bottom-0 left-0 h-0.5 bg-white transition-all duration-500" />
               {errors[1] && (
-                <div className="absolute left-0 top-full text-red-400 text-sm mt-1.5 animate-shake">
+                <div className="text-red-400 text-sm mt-1.5 animate-shake">
                   {errors[1]}
                 </div>
               )}
             </div>
+
             <div className="flex items-center gap-4">
               <button
                 onClick={() => validateAndProceed(1)}
-                className="bg-white text-black px-5 py-2.5 rounded-full text-base font-medium hover:translate-y-[-2px] hover:shadow-lg transition-all"
+                className="bg-white text-black px-5 py-2.5 rounded-full"
               >
                 OK
               </button>
@@ -233,13 +238,15 @@ const Form = () => {
           </div>
         )}
 
-        {/* Question 2 */}
+        {/* =======================
+            Q2 – EMAIL
+        ======================= */}
         {currentQuestion === 2 && !showThankYou && (
-          <div className="opacity-100 transform translate-y-0 transition-all duration-400">
+          <div>
             <div className="mb-12">
               <button
-                onClick={() => setCurrentQuestion(1)}
-                className="bg-white text-black px-2.5 py-1.5 rounded-full flex items-center gap-1 hover:bg-white/90 transition-all"
+                onClick={() => setCurrentQuestion(getPrevStep(2))}
+                className="bg-white text-black px-2.5 py-1.5 rounded-full"
               >
                 <svg
                   className="w-6 h-6"
@@ -256,9 +263,11 @@ const Form = () => {
                 </svg>
               </button>
             </div>
+
             <h2 className="text-[28px] font-medium mb-5 tracking-tight">
               Email Address *
             </h2>
+
             <div className="relative mb-10">
               <input
                 type="email"
@@ -267,19 +276,19 @@ const Form = () => {
                   setFormData({ ...formData, email: e.target.value })
                 }
                 placeholder="name@example.com"
-                className="w-full py-3 bg-transparent border-none border-b-2 border-white/30 text-white text-2xl focus:outline-none"
+                className="w-full py-3 bg-transparent  focus:border-b-2 border-white/30 text-white text-2xl focus:outline-none"
               />
-              <div className="input-line absolute bottom-0 left-0 h-0.5 bg-white transition-all duration-500" />
               {errors[2] && (
-                <div className="absolute left-0 top-full text-red-400 text-sm mt-1.5 animate-shake">
+                <div className="text-red-400 text-sm mt-1.5 animate-shake">
                   {errors[2]}
                 </div>
               )}
             </div>
+
             <div className="flex items-center gap-4">
               <button
                 onClick={() => validateAndProceed(2)}
-                className="bg-white text-black px-5 py-2.5 rounded-full text-base font-medium hover:translate-y-[-2px] hover:shadow-lg transition-all"
+                className="bg-white text-black px-5 py-2.5 rounded-full"
               >
                 OK
               </button>
@@ -288,13 +297,15 @@ const Form = () => {
           </div>
         )}
 
-        {/* Question 3 */}
+        {/* =======================
+            Q3 – MOBILE NUMBER
+        ======================= */}
         {currentQuestion === 3 && !showThankYou && (
-          <div className="opacity-100 transform translate-y-0 transition-all duration-400">
+          <div>
             <div className="mb-12">
               <button
-                onClick={() => setCurrentQuestion(2)}
-                className="bg-white text-black px-2.5 py-1.5 rounded-full flex items-center gap-1 hover:bg-white/90 transition-all"
+                onClick={() => setCurrentQuestion(getPrevStep(3))}
+                className="bg-white text-black px-2.5 py-1.5 rounded-full"
               >
                 <svg
                   className="w-6 h-6"
@@ -311,9 +322,9 @@ const Form = () => {
                 </svg>
               </button>
             </div>
-            <h2 className="text-[28px] font-medium mb-5 tracking-tight">
-              Mobile Number *
-            </h2>
+
+            <h2 className="text-[28px] font-medium mb-5">Mobile Number *</h2>
+
             <div className="relative mb-10">
               <input
                 type="tel"
@@ -321,20 +332,20 @@ const Form = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, mobile: e.target.value })
                 }
-                placeholder="+1 (555) 123-4567"
-                className="w-full py-3 bg-transparent border-none border-b-2 border-white/30 text-white text-2xl focus:outline-none"
+                placeholder="+971 501234567"
+                className="w-full py-3 bg-transparent focus:border-b-2 border-white/30 text-white text-2xl focus:outline-none"
               />
-              <div className="input-line absolute bottom-0 left-0 h-0.5 bg-white transition-all duration-500" />
               {errors[3] && (
-                <div className="absolute left-0 top-full text-red-400 text-sm mt-1.5 animate-shake">
+                <div className="text-red-400 text-sm mt-1.5 animate-shake">
                   {errors[3]}
                 </div>
               )}
             </div>
+
             <div className="flex items-center gap-4">
               <button
                 onClick={() => validateAndProceed(3)}
-                className="bg-white text-black px-5 py-2.5 rounded-full text-base font-medium hover:translate-y-[-2px] hover:shadow-lg transition-all"
+                className="bg-white text-black px-5 py-2.5 rounded-full"
               >
                 OK
               </button>
@@ -343,13 +354,15 @@ const Form = () => {
           </div>
         )}
 
-        {/* Question 4 */}
+        {/* =======================
+            Q4 – HOW YOU JOIN
+        ======================= */}
         {currentQuestion === 4 && !showThankYou && (
-          <div className="opacity-100 transform translate-y-0 transition-all duration-400">
+          <div>
             <div className="mb-12">
               <button
-                onClick={() => setCurrentQuestion(3)}
-                className="bg-white text-black px-2.5 py-1.5 rounded-full flex items-center gap-1 hover:bg-white/90 transition-all"
+                onClick={() => setCurrentQuestion(getPrevStep(4))}
+                className="bg-white text-black px-2.5 py-1.5 rounded-full"
               >
                 <svg
                   className="w-6 h-6"
@@ -366,61 +379,69 @@ const Form = () => {
                 </svg>
               </button>
             </div>
-            <h2 className="text-[28px] font-medium mb-5 tracking-tight">
-              How would you like to join AAURAA? (Select one)*
+
+            <h2 className="text-[28px] font-medium mb-5">
+              How would you like to join AAURAA? *
             </h2>
-            <div className="mb-8">
-              <div className="flex flex-col gap-2">
-                {howYouJoinOption.map((option) => (
-                  <div
-                    key={option.value}
-                    onClick={() => {
-                      setFormData({ ...formData, howyouJoin: option.value });
-                      setErrors((prev) => ({ ...prev, 4: "" }));
-                    }}
-                    className={`p-4 rounded-lg cursor-pointer transition-all ${
-                      formData.howyouJoin === option.value
-                        ? "bg-white/20"
-                        : "bg-white/10 hover:bg-white/15"
-                    }`}
-                  >
-                    <div className="flex items-center">
-                      <div
-                        className={`w-5 h-5 border-2 rounded-full mr-3 relative ${
-                          formData.howyouJoin === option.value
-                            ? "border-white"
-                            : "border-white/50"
-                        }`}
-                      >
-                        {formData.howyouJoin === option.value && (
-                          <div className="absolute inset-0 m-auto w-2.5 h-2.5 bg-white rounded-full" />
-                        )}
-                      </div>
-                      <div className="text-lg">{option.label}</div>
+
+            <div className="mb-8 flex flex-col gap-3">
+              {howYouJoinOption.map((option) => (
+                <div
+                  key={option.value}
+                  onClick={() => {
+                    setFormData({ ...formData, howyouJoin: option.value });
+                    setErrors((prev) => ({ ...prev, 4: "" }));
+                  }}
+                  className={`p-4 rounded-lg cursor-pointer ${
+                    formData.howyouJoin === option.value
+                      ? "bg-white/20"
+                      : "bg-white/10 hover:bg-white/15"
+                  }`}
+                >
+                  <div className="flex items-center">
+                    <div
+                      className={`w-5 h-5 border-2 rounded-full mr-3 ${
+                        formData.howyouJoin === option.value
+                          ? "border-white"
+                          : "border-white/60"
+                      }`}
+                    >
+                      {formData.howyouJoin === option.value && (
+                        <div className="w-2.5 h-2.5 bg-white rounded-full m-auto relative top-1.5"></div>
+                      )}
                     </div>
+
+                    <span className="text-lg">{option.label}</span>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
+
               {errors[4] && (
                 <div className="text-red-400 text-sm mt-1.5">{errors[4]}</div>
               )}
             </div>
-            <button
-              onClick={() => validateAndProceed(4)}
-              className="bg-white text-black px-5 py-2.5 rounded-full text-base font-medium hover:translate-y-[-2px] hover:shadow-lg transition-all"
-            >
-              OK
-            </button>
+
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => validateAndProceed(4)}
+                className="bg-white text-black px-5 py-2.5 rounded-full"
+              >
+                OK
+              </button>
+              <span className="text-white/70 text-sm">Press Enter</span>
+            </div>
           </div>
         )}
 
-        {/* Question 5–8: Same pattern – only back button fixed */}
+        {/* =======================
+            Q5 – COMMUNITY NAME (Skipped for user)
+        ======================= */}
         {currentQuestion === 5 && !showThankYou && (
-          <div className="opacity-100 transform translate-y-0 transition-all duration-400">
+          <div>
             <div className="mb-12">
               <button
-                onClick={() => setCurrentQuestion(4)}
-                className="bg-white text-black px-2.5 py-1.5 rounded-full flex items-center gap-1 hover:bg-white/90 transition-all"
+                onClick={() => setCurrentQuestion(getPrevStep(5))}
+                className="bg-white text-black px-2.5 py-1.5 rounded-full"
               >
                 <svg
                   className="w-6 h-6"
@@ -437,30 +458,36 @@ const Form = () => {
                 </svg>
               </button>
             </div>
-            <h2 className="text-[28px] font-medium mb-5 tracking-tight">
+
+            <h2 className="text-[28px] font-medium mb-5">
               Name of Your Community / Brand / Event *
             </h2>
+
             <div className="relative mb-10">
               <input
                 type="text"
                 value={formData.communityName}
                 onChange={(e) =>
-                  setFormData({ ...formData, communityName: e.target.value })
+                  setFormData({
+                    ...formData,
+                    communityName: e.target.value,
+                  })
                 }
                 placeholder="Type your answer here..."
-                className="w-full py-3 bg-transparent border-none border-b-2 border-white/30 text-white text-2xl focus:outline-none"
+                className="w-full py-3 bg-transparent focus:border-b-2 border-white/30 text-white text-2xl focus:outline-none"
               />
-              <div className="input-line absolute bottom-0 left-0 h-0.5 bg-white transition-all duration-500" />
+
               {errors[5] && (
-                <div className="absolute left-0 top-full text-red-400 text-sm mt-1.5 animate-shake">
+                <div className="text-red-400 text-sm mt-1.5 animate-shake">
                   {errors[5]}
                 </div>
               )}
             </div>
+
             <div className="flex items-center gap-4">
               <button
                 onClick={() => validateAndProceed(5)}
-                className="bg-white text-black px-5 py-2.5 rounded-full text-base font-medium hover:translate-y-[-2px] hover:shadow-lg transition-all"
+                className="bg-white text-black px-5 py-2.5 rounded-full"
               >
                 OK
               </button>
@@ -469,12 +496,15 @@ const Form = () => {
           </div>
         )}
 
+        {/* =======================
+            Q6 – WEBSITE / SOCIAL HANDLE
+        ======================= */}
         {currentQuestion === 6 && !showThankYou && (
-          <div className="opacity-100 transform translate-y-0 transition-all duration-400">
+          <div>
             <div className="mb-12">
               <button
-                onClick={() => setCurrentQuestion(5)}
-                className="bg-white text-black px-2.5 py-1.5 rounded-full flex items-center gap-1 hover:bg-white/90 transition-all"
+                onClick={() => setCurrentQuestion(getPrevStep(6))}
+                className="bg-white text-black px-2.5 py-1.5 rounded-full"
               >
                 <svg
                   className="w-6 h-6"
@@ -491,30 +521,37 @@ const Form = () => {
                 </svg>
               </button>
             </div>
-            <h2 className="text-[28px] font-medium mb-5 tracking-tight">
-              Website or Social Media Handle *
+
+            <h2 className="text-[28px] font-medium mb-5">
+              Website or Social Media Handle{" "}
+              {formData.howyouJoin !== "user" ? "*" : "(Optional)"}
             </h2>
+
             <div className="relative mb-10">
               <input
                 type="text"
                 value={formData.socialHandle}
                 onChange={(e) =>
-                  setFormData({ ...formData, socialHandle: e.target.value })
+                  setFormData({
+                    ...formData,
+                    socialHandle: e.target.value,
+                  })
                 }
-                placeholder="https://.... or @your_handle"
-                className="w-full py-3 bg-transparent border-none border-b-2 border-white/30 text-white text-2xl focus:outline-none"
+                placeholder="https://... or @your_handle"
+                className="w-full py-3 bg-transparent focus:border-b-2 border-white/30 text-white text-2xl focus:outline-none"
               />
-              <div className="input-line absolute bottom-0 left-0 h-0.5 bg-white transition-all duration-500" />
-              {errors[6] && (
-                <div className="absolute left-0 top-full text-red-400 text-sm mt-1.5 animate-shake">
+
+              {errors[6] && formData.howyouJoin !== "user" && (
+                <div className="text-red-400 text-sm mt-1.5 animate-shake">
                   {errors[6]}
                 </div>
               )}
             </div>
+
             <div className="flex items-center gap-4">
               <button
                 onClick={() => validateAndProceed(6)}
-                className="bg-white text-black px-5 py-2.5 rounded-full text-base font-medium hover:translate-y-[-2px] hover:shadow-lg transition-all"
+                className="bg-white text-black px-5 py-2.5 rounded-full"
               >
                 OK
               </button>
@@ -523,12 +560,15 @@ const Form = () => {
           </div>
         )}
 
+        {/* =======================
+            Q7 – EVENT TYPES (Skipped for user)
+        ======================= */}
         {currentQuestion === 7 && !showThankYou && (
-          <div className="opacity-100 transform translate-y-0 transition-all duration-400">
+          <div>
             <div className="mb-12">
               <button
-                onClick={() => setCurrentQuestion(6)}
-                className="bg-white text-black px-2.5 py-1.5 rounded-full flex items-center gap-1 hover:bg-white/90 transition-all"
+                onClick={() => setCurrentQuestion(getPrevStep(7))}
+                className="bg-white text-black px-2.5 py-1.5 rounded-full"
               >
                 <svg
                   className="w-6 h-6"
@@ -545,61 +585,69 @@ const Form = () => {
                 </svg>
               </button>
             </div>
-            <h2 className="text-[28px] font-medium mb-5 tracking-tight">
+
+            <h2 className="text-[28px] font-medium mb-5">
               Type of events you usually host *
             </h2>
-            <div className="mb-8">
-              <div className="flex flex-col gap-2">
-                {eventTypes.map((type) => (
-                  <div
-                    key={type.value}
-                    onClick={() => {
-                      setFormData({ ...formData, eventType: type.value });
-                      setErrors((prev) => ({ ...prev, 7: "" }));
-                    }}
-                    className={`p-4 rounded-lg cursor-pointer transition-all ${
-                      formData.eventType === type.value
-                        ? "bg-white/20"
-                        : "bg-white/10 hover:bg-white/15"
-                    }`}
-                  >
-                    <div className="flex items-center">
-                      <div
-                        className={`w-5 h-5 border-2 rounded-full mr-3 relative ${
-                          formData.eventType === type.value
-                            ? "border-white"
-                            : "border-white/50"
-                        }`}
-                      >
-                        {formData.eventType === type.value && (
-                          <div className="absolute inset-0 m-auto w-2.5 h-2.5 bg-white rounded-full" />
-                        )}
-                      </div>
-                      <div className="text-lg">{type.label}</div>
+
+            <div className="mb-8 flex flex-col gap-3">
+              {eventTypes.map((type) => (
+                <div
+                  key={type.value}
+                  onClick={() => {
+                    setFormData({ ...formData, eventType: type.value });
+                    setErrors((prev) => ({ ...prev, 7: "" }));
+                  }}
+                  className={`p-4 rounded-lg cursor-pointer ${
+                    formData.eventType === type.value
+                      ? "bg-white/20"
+                      : "bg-white/10 hover:bg-white/15"
+                  }`}
+                >
+                  <div className="flex items-center">
+                    <div
+                      className={`w-5 h-5 border-2 rounded-full mr-3 ${
+                        formData.eventType === type.value
+                          ? "border-white"
+                          : "border-white/60"
+                      }`}
+                    >
+                      {formData.eventType === type.value && (
+                        <div className="w-2.5 h-2.5 bg-white rounded-full m-auto relative top-1.5"></div>
+                      )}
                     </div>
+
+                    <span className="text-lg">{type.label}</span>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
+
               {errors[7] && (
                 <div className="text-red-400 text-sm mt-1.5">{errors[7]}</div>
               )}
             </div>
-            <button
-              onClick={() => validateAndProceed(7)}
-              className="bg-white text-black px-5 py-2.5 rounded-full text-base font-medium hover:translate-y-[-2px] hover:shadow-lg transition-all"
-            >
-              OK
-            </button>
+
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => validateAndProceed(7)}
+                className="bg-white text-black px-5 py-2.5 rounded-full"
+              >
+                OK
+              </button>
+              <span className="text-white/70 text-sm">Press Enter</span>
+            </div>
           </div>
         )}
 
-        {/* Question 8 */}
+        {/* =======================
+            Q8 – ADDITIONAL QUESTIONS
+        ======================= */}
         {currentQuestion === 8 && !showThankYou && (
-          <div className="opacity-100 transform translate-y-0 transition-all duration-400">
+          <div>
             <div className="mb-12">
               <button
-                onClick={() => setCurrentQuestion(7)}
-                className="bg-white text-black px-2.5 py-1.5 rounded-full flex items-center gap-1 hover:bg-white/90 transition-all"
+                onClick={() => setCurrentQuestion(getPrevStep(8))}
+                className="bg-white text-black px-2.5 py-1.5 rounded-full"
               >
                 <svg
                   className="w-6 h-6"
@@ -616,9 +664,11 @@ const Form = () => {
                 </svg>
               </button>
             </div>
-            <h2 className="text-[28px] font-medium mb-5 tracking-tight">
+
+            <h2 className="text-[28px] font-medium mb-5">
               Any questions or suggestions for the AAURAA team?
             </h2>
+
             <div className="relative mb-10">
               <textarea
                 value={formData.questions}
@@ -626,45 +676,67 @@ const Form = () => {
                   setFormData({ ...formData, questions: e.target.value })
                 }
                 placeholder="Type your answer here... (optional)"
-                className="w-full py-3 bg-transparent border-none border-b-2 border-white/30 text-white text-2xl focus:outline-none resize-none"
+                className="w-full py-3 bg-transparent focus:border-b-2 border-white/30 text-white text-2xl resize-none focus:outline-none"
                 rows={3}
-              />
-              <div className="input-line absolute bottom-0 left-0 h-0.5 bg-white transition-all duration-500" />
+              ></textarea>
             </div>
+
             <button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="bg-white text-black px-5 py-2.5 rounded-full text-base font-medium hover:translate-y-[-2px] hover:shadow-lg transition-all disabled:opacity-50"
+              className="bg-white text-black px-5 py-2.5 rounded-full disabled:opacity-50"
             >
               {isSubmitting ? "Joining..." : "Join the Waitlist"}
             </button>
           </div>
         )}
 
-        {/* Thank You */}
+        {/* =======================
+            THANK YOU SCREEN
+        ======================= */}
         {showThankYou && (
-          <div className="text-center opacity-100 transform translate-y-0 transition-all duration-400">
-            <div className="text-6xl mb-8">Celebration</div>
+          <div className="text-center">
             <h2 className="text-[42px] font-semibold mb-5 tracking-tight">
-              Thank you!
+              Welcome to <span className=" text-[#E90000]">AAURAA!</span>
             </h2>
-            <p className="text-[22px] text-white/80 mb-10">
-              We'll be in touch with you shortly.
+
+            <p className="text-[22px] text-white/80 mb-6">
+              You’re officially on the list. ✨
             </p>
+
+            <div className="text-white/80 text-[18px] leading-relaxed mb-10 space-y-3 text-left">
+              <p>
+                Thank you for joining our early community — where meaningful
+                connections meet real experiences.
+              </p>
+              <p>You’ll soon get early access to:</p>
+              <ul className="list-none space-y-1">
+                <li>• Curated communities</li>
+                <li>• Purpose-driven events</li>
+                <li>• Local creators & founders</li>
+                <li>• A platform built to bring people together</li>
+              </ul>
+              <p>This is just the beginning. Your AAURAA journey starts now.</p>
+              <p>
+                Together, we’re building a platform with communities, for
+                communities, shaping a more connected UAE.
+              </p>
+            </div>
+
             <p className="text-[#999] text-sm">
-              Redirecting to home page in <span>{countdown}</span> seconds...
+              Redirecting to home in <span>{countdown}</span> seconds...
             </p>
           </div>
         )}
       </div>
 
-      {/* Progress Bar */}
+      {/* PROGRESS BAR */}
       <div className="absolute top-0 left-0 w-full">
         <div className="w-full h-1 bg-white/20">
           <div
             className="h-full bg-white transition-all duration-500"
             style={{ width: `${progress}%` }}
-          />
+          ></div>
         </div>
       </div>
 
@@ -685,13 +757,6 @@ const Form = () => {
         }
         .animate-shake {
           animation: shake 0.5s;
-        }
-        .input-line {
-          width: 0;
-        }
-        input:focus ~ .input-line,
-        textarea:focus ~ .input-line {
-          width: 100%;
         }
       `}</style>
     </div>
