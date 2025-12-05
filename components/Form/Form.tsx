@@ -147,7 +147,7 @@ const Form = () => {
 
     try {
       await fetch(
-        "https://script.google.com/macros/s/AKfycbzTtRhQcJ0r8zNznAjlBBL-XDHIM10keU9gRnAdb1iVeYwANoVlvXlNsf3pq8Rg5M27RA/exec",
+        "https://script.google.com/macros/s/AKfycbzKFhsxQZ_hGzaIc0swrmXIhF733dpDZUCZlkNIikuS1uj-sJp4tltdqGQ5TEk7xaS2Ag/exec",
         { method: "POST", mode: "no-cors", body: data }
       );
 
@@ -182,7 +182,7 @@ const Form = () => {
 
   const howYouJoinOption = [
     { value: "community-founder", label: "I am a Community Founder" },
-    { value: "i-create-events", label: "I Create Events" },
+    { value: "event-host", label: "I Create Events" },
     {
       value: "user",
       label: "I am a User looking to discover communities & experiences",
